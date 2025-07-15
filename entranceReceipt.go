@@ -3,7 +3,7 @@ package main
 import "time"
 
 type entranceReceipt struct {
-	num     int
+	id      int
 	date    time.Time
 	truck   string
 	trailer string
