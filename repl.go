@@ -18,7 +18,7 @@ func startRepl() {
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			reference(receipts)
+			reference(&receipts)
 		case "2":
 			newDoc(&docEnumerator, &receipts)
 		case "exit":
@@ -29,9 +29,9 @@ func startRepl() {
 	}
 }
 
-func reference(receipts []entranceReceipt) {
+func reference(receipts *[]entranceReceipt) {
 	fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "НОМЕР", "ДАТА", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
-	for _, e := range receipts {
+	for _, e := range *receipts {
 		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", e.id, e.date.Format("00/00/0000"), e.truck, e.trailer, e.gross, e.tare, e.net)
 	}
 }
