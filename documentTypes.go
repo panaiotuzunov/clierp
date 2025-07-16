@@ -54,5 +54,6 @@ func NewEntranceReceipt(id *int) entranceReceipt {
 	}
 	result.net = result.gross - result.tare
 	*id++
+	fmt.Printf("Документ с номер %v е създаден успешно.\n", result.id)
 	return result
 }

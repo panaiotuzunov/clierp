@@ -18,9 +18,9 @@ func startRepl() {
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			reference(&receipts)
+			referenceRepl(&receipts)
 		case "2":
-			newDoc(&docEnumerator, &receipts)
+			newDocRepl(&docEnumerator, &receipts, scanner)
 		case "exit":
 			os.Exit(0)
 		default:
@@ -29,13 +29,32 @@ func startRepl() {
 	}
 }
 
-func reference(receipts *[]entranceReceipt) {
+func referenceRepl(receipts *[]entranceReceipt) {
 	fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "НОМЕР", "ДАТА", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
 	for _, e := range *receipts {
-		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", e.id, e.date.Format("00/00/0000"), e.truck, e.trailer, e.gross, e.tare, e.net)
+		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", e.id, e.date.Format("02/01/2006"), e.truck, e.trailer, e.gross, e.tare, e.net)
 	}
 }
 
-func newDoc(id *int, receipts *[]entranceReceipt) {
-	*receipts = append(*receipts, NewEntranceReceipt(id))
+func newDocRepl(id *int, receipts *[]entranceReceipt, scanner *bufio.Scanner) {
+outer:
+	for {
+		fmt.Println("Изберете тип документ. За връщане назад изберете '0'")
+		fmt.Println("1. Приемна бележка")
+		fmt.Println("2. Пропуск за извозване")
+		scanner.Scan()
+		selection := scanner.Text()
+		switch selection {
+		case "1":
+			*receipts = append(*receipts, NewEntranceReceipt(id))
+		case "2":
+			fmt.Println("Документа все още не съществува.")
+		case "0":
+			break outer
+		case "exit":
+			os.Exit(0)
+		default:
+			fmt.Println("Невалиден избор.")
+		}
+	}
 }
