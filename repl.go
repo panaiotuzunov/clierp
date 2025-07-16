@@ -18,7 +18,7 @@ func startRepl() {
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			referenceRepl(&receipts)
+			referenceRepl(&receipts, scanner)
 		case "2":
 			newDocRepl(&docEnumerator, &receipts, scanner)
 		case "exit":
@@ -29,10 +29,23 @@ func startRepl() {
 	}
 }
 
-func referenceRepl(receipts *[]entranceReceipt) {
-	fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "НОМЕР", "ДАТА", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
-	for _, e := range *receipts {
-		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", e.id, e.date.Format("02/01/2006"), e.truck, e.trailer, e.gross, e.tare, e.net)
+func referenceRepl(receipts *[]entranceReceipt, scanner *bufio.Scanner) {
+outer:
+	for {
+		fmt.Println("Изберете справка от каталога. За връщане назад изберете '0'")
+		fmt.Println("1. Кантарна книга")
+		scanner.Scan()
+		selection := scanner.Text()
+		switch selection {
+		case "1":
+			printEntranceAndExitReciеpts(receipts)
+		case "0":
+			break outer
+		case "exit":
+			os.Exit(0)
+		default:
+			fmt.Println("Невалиден избор.")
+		}
 	}
 }
 
@@ -56,5 +69,16 @@ outer:
 		default:
 			fmt.Println("Невалиден избор.")
 		}
+	}
+}
+
+func printEntranceAndExitReciеpts(receipts *[]entranceReceipt) {
+	if len(*receipts) == 0 {
+		fmt.Println("Няма намерени документи")
+		return
+	}
+	fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "НОМЕР", "ДАТА", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
+	for _, e := range *receipts {
+		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", e.id, e.date.Format("02/01/2006"), e.truck, e.trailer, e.gross, e.tare, e.net)
 	}
 }
