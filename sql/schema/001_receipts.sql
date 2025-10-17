@@ -7,7 +7,9 @@ CREATE TABLE receipts (
     trailer_reg TEXT NOT NULL,
     gross INT NOT NULL,
     tare INT NOT NULL,
-    net INT NOT NULL
+    net INT NOT NULL,
+    doc_type TEXT NOT NULL,
+    grain_type TEXT NOT NULL
 );
 
 -- +goose Down

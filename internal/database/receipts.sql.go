@@ -11,7 +11,7 @@ import (
 
 const createReceipt = `-- name: CreateReceipt :exec
 INSERT INTO receipts (
-    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net 
+    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type 
     )
 VALUES (
     NOW(),
@@ -20,7 +20,9 @@ VALUES (
     $2,
     $3,
     $4,
-    $5
+    $5,
+    $6,
+    $7
 )
 `
 
@@ -30,6 +32,8 @@ type CreateReceiptParams struct {
 	Gross      int32
 	Tare       int32
 	Net        int32
+	DocType    string
+	GrainType  string
 }
 
 func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) error {
@@ -39,12 +43,14 @@ func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) er
 		arg.Gross,
 		arg.Tare,
 		arg.Net,
+		arg.DocType,
+		arg.GrainType,
 	)
 	return err
 }
 
 const getAllReceipts = `-- name: GetAllReceipts :many
-SELECT id, created_at, updated_at, truck_reg, trailer_reg, gross, tare, net FROM receipts
+SELECT id, created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type FROM receipts
 `
 
 func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
@@ -65,6 +71,8 @@ func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
 			&i.Gross,
 			&i.Tare,
 			&i.Net,
+			&i.DocType,
+			&i.GrainType,
 		); err != nil {
 			return nil, err
 		}
@@ -77,4 +85,16 @@ func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getCurrentInventory = `-- name: GetCurrentInventory :one
+SELECT SUM(net)
+FROM receipts
+`
+
+func (q *Queries) GetCurrentInventory(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getCurrentInventory)
+	var sum int64
+	err := row.Scan(&sum)
+	return sum, err
 }

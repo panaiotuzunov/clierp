@@ -17,4 +17,6 @@ type Receipt struct {
 	Gross      int32
 	Tare       int32
 	Net        int32
+	DocType    string
+	GrainType  string
 }

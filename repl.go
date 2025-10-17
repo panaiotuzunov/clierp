@@ -2,14 +2,12 @@ package main
 
 import (
 	"bufio"
-	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"os"
 )
 
 func startRepl(stateStruct *State) {
+
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Println("Изберете опцията от менюто. (само код)")
@@ -35,11 +33,14 @@ outer:
 	for {
 		fmt.Println("Изберете справка от каталога. За връщане назад изберете '0'")
 		fmt.Println("1. Кантарна книга")
+		fmt.Println("2. Наличност")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			printEntranceAndExitReciеpts(stateStruct)
+			printEntranceAndExitReciepts(stateStruct)
+		case "2":
+			printInventory(stateStruct)
 		case "0":
 			break outer
 		case "exit":
@@ -60,9 +61,9 @@ outer:
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			NewEntranceReceipt(stateStruct)
+			NewReceipt(stateStruct, docTypeEntrace)
 		case "2":
-			fmt.Println("Документа все още не съществува.")
+			NewReceipt(stateStruct, docTypeExit)
 		case "0":
 			break outer
 		case "exit":
@@ -71,25 +72,4 @@ outer:
 			fmt.Println("Невалиден избор.")
 		}
 	}
-}
-
-func printEntranceAndExitReciеpts(stateStruct *State) {
-	receipts, err := stateStruct.db.GetAllReceipts(context.Background())
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			fmt.Println("Няма намерени документи.")
-			return
-		}
-		fmt.Println("Грешка при търсене на документи.")
-		return
-	}
-	fmt.Println("----------------------------------------------------------------------------------------")
-	fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "НОМЕР", "ДАТА", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
-	for _, r := range receipts {
-		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n",
-			r.ID,
-			r.CreatedAt.Format("02/01/2006"),
-			r.TruckReg, r.TrailerReg, r.Gross, r.Tare, r.Net)
-	}
-	fmt.Println("----------------------------------------------------------------------------------------")
 }
