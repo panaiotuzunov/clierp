@@ -2,13 +2,14 @@ package main
 
 import (
 	"bufio"
+	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 )
 
-func startRepl() {
-	docEnumerator := 1
-	receipts := []entranceReceipt{}
+func startRepl(stateStruct *State) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Println("Изберете опцията от менюто. (само код)")
@@ -18,9 +19,9 @@ func startRepl() {
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			referenceRepl(&receipts, scanner)
+			referenceRepl(scanner, stateStruct)
 		case "2":
-			newDocRepl(&docEnumerator, &receipts, scanner)
+			newDocRepl(scanner, stateStruct)
 		case "exit":
 			os.Exit(0)
 		default:
@@ -29,7 +30,7 @@ func startRepl() {
 	}
 }
 
-func referenceRepl(receipts *[]entranceReceipt, scanner *bufio.Scanner) {
+func referenceRepl(scanner *bufio.Scanner, stateStruct *State) {
 outer:
 	for {
 		fmt.Println("Изберете справка от каталога. За връщане назад изберете '0'")
@@ -38,7 +39,7 @@ outer:
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			printEntranceAndExitReciеpts(receipts)
+			printEntranceAndExitReciеpts(stateStruct)
 		case "0":
 			break outer
 		case "exit":
@@ -49,7 +50,7 @@ outer:
 	}
 }
 
-func newDocRepl(id *int, receipts *[]entranceReceipt, scanner *bufio.Scanner) {
+func newDocRepl(scanner *bufio.Scanner, stateStruct *State) {
 outer:
 	for {
 		fmt.Println("Изберете тип документ. За връщане назад изберете '0'")
@@ -59,7 +60,7 @@ outer:
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			*receipts = append(*receipts, NewEntranceReceipt(id))
+			NewEntranceReceipt(stateStruct)
 		case "2":
 			fmt.Println("Документа все още не съществува.")
 		case "0":
@@ -72,13 +73,23 @@ outer:
 	}
 }
 
-func printEntranceAndExitReciеpts(receipts *[]entranceReceipt) {
-	if len(*receipts) == 0 {
-		fmt.Println("Няма намерени документи")
+func printEntranceAndExitReciеpts(stateStruct *State) {
+	receipts, err := stateStruct.db.GetAllReceipts(context.Background())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			fmt.Println("Няма намерени документи.")
+			return
+		}
+		fmt.Println("Грешка при търсене на документи.")
 		return
 	}
+	fmt.Println("----------------------------------------------------------------------------------------")
 	fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "НОМЕР", "ДАТА", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
-	for _, e := range *receipts {
-		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", e.id, e.date.Format("02/01/2006"), e.truck, e.trailer, e.gross, e.tare, e.net)
+	for _, r := range receipts {
+		fmt.Printf("%-12v %-12v %-12v %-12v %-12v %-12v %-12v\n",
+			r.ID,
+			r.CreatedAt.Format("02/01/2006"),
+			r.TruckReg, r.TrailerReg, r.Gross, r.Tare, r.Net)
 	}
+	fmt.Println("----------------------------------------------------------------------------------------")
 }

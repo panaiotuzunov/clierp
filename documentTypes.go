@@ -2,34 +2,22 @@ package main
 
 import (
 	"bufio"
+	"clierp/internal/database"
+	"context"
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 )
 
-type entranceReceipt struct {
-	id      int
-	date    time.Time
-	truck   string
-	trailer string
-	gross   int
-	tare    int
-	net     int
-}
-
-func NewEntranceReceipt(id *int) entranceReceipt {
+func NewEntranceReceipt(stateStruct *State) {
 	scanner := bufio.NewScanner(os.Stdin)
-	result := entranceReceipt{
-		id: *id,
-	}
-	result.date = time.Now()
+	currentReceipt := database.CreateReceiptParams{}
 	fmt.Println("Въведете номер на камион.")
 	scanner.Scan()
-	result.truck = scanner.Text()
+	currentReceipt.TruckReg = scanner.Text()
 	fmt.Println("Въведете номер на ремарке.")
 	scanner.Scan()
-	result.trailer = scanner.Text()
+	currentReceipt.TrailerReg = scanner.Text()
 	fmt.Println("Въведете количество бруто.")
 	for {
 		scanner.Scan()
@@ -38,7 +26,7 @@ func NewEntranceReceipt(id *int) entranceReceipt {
 			fmt.Printf("Невалидно число: %v", err)
 			continue
 		}
-		result.gross = num
+		currentReceipt.Gross = int32(num)
 		break
 	}
 	fmt.Println("Въведете количество тара.")
@@ -49,11 +37,13 @@ func NewEntranceReceipt(id *int) entranceReceipt {
 			fmt.Printf("Невалидно число: %v", err)
 			continue
 		}
-		result.tare = num
+		currentReceipt.Tare = int32(num)
+		currentReceipt.Net = currentReceipt.Gross - currentReceipt.Tare
 		break
 	}
-	result.net = result.gross - result.tare
-	*id++
-	fmt.Printf("Документ с номер %v е създаден успешно.\n", result.id)
-	return result
+	if err := stateStruct.db.CreateReceipt(context.Background(), currentReceipt); err != nil {
+		fmt.Println("Неуспешно създаване на документа.")
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println("----------------------------------------------------------------------------------------")
 }
