@@ -17,6 +17,7 @@ VALUES (
 -- name: GetAllReceipts :many
 SELECT * FROM receipts;
 
--- name: GetCurrentInventory :one
-SELECT SUM(net)
-FROM receipts;
+-- name: GetCurrentInventoryByType :many
+SELECT grain_type, SUM(net)
+FROM receipts
+GROUP BY(grain_type);

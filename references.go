@@ -35,11 +35,18 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 }
 
 func printInventory(stateStruct *State) {
-	inventory, err := stateStruct.db.GetCurrentInventory(context.Background())
+	inventory, err := stateStruct.db.GetCurrentInventoryByType(context.Background())
 	if err != nil {
 		fmt.Println("Грешка при калкулиране на наличност.")
 	}
+	if len(inventory) == 0 {
+		fmt.Println("Няма текуща наличност.")
+		return
+	}
 	fmt.Println(refLineSeparator)
-	fmt.Printf("Текущата наличност е %d тона.\n", inventory)
+	fmt.Println("Текущата наличност по култури е:")
+	for _, item := range inventory {
+		fmt.Printf("%s - %d т.\n", item.GrainType, item.Sum)
+	}
 	fmt.Println(refLineSeparator)
 }

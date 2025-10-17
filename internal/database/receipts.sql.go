@@ -87,14 +87,36 @@ func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
 	return items, nil
 }
 
-const getCurrentInventory = `-- name: GetCurrentInventory :one
-SELECT SUM(net)
+const getCurrentInventoryByType = `-- name: GetCurrentInventoryByType :many
+SELECT grain_type, SUM(net)
 FROM receipts
+GROUP BY(grain_type)
 `
 
-func (q *Queries) GetCurrentInventory(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getCurrentInventory)
-	var sum int64
-	err := row.Scan(&sum)
-	return sum, err
+type GetCurrentInventoryByTypeRow struct {
+	GrainType string
+	Sum       int64
+}
+
+func (q *Queries) GetCurrentInventoryByType(ctx context.Context) ([]GetCurrentInventoryByTypeRow, error) {
+	rows, err := q.db.QueryContext(ctx, getCurrentInventoryByType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetCurrentInventoryByTypeRow
+	for rows.Next() {
+		var i GetCurrentInventoryByTypeRow
+		if err := rows.Scan(&i.GrainType, &i.Sum); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
