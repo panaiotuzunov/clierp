@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"text/tabwriter"
 )
 
 func printEntranceAndExitReciepts(stateStruct *State) {
@@ -18,19 +20,14 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 		return
 	}
 	fmt.Println(refLineSeparator)
-	fmt.Printf("%-20v %-12v %-12v %-12v %-12v %-12v %-12v %-12v %-12v\n", "ТИП ДОКУМЕНТ", "НОМЕР", "ДАТА", "ВИД ЗЪРНО", "КАМИОН", "РЕМАРКЕ", "БРУТО", "ТАРА", "НЕТО")
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "ТИП\tНОМЕР\tДАТА\tЗЪРНО\tКАМИОН\tРЕМАРКЕ\tБРУТО\tТАРА\tНЕТО")
 	for _, r := range receipts {
-		fmt.Printf("%-20v %-12v %-12v %-12v %-12v %-12v %-12v %-12v %-12v\n",
-			r.DocType,
-			r.ID,
-			r.CreatedAt.Format("02/01/2006"),
-			r.GrainType,
-			r.TruckReg,
-			r.TrailerReg,
-			r.Gross,
-			r.Tare,
-			r.Net)
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\n",
+			r.DocType, r.ID, r.CreatedAt.Format("02/01/2006"),
+			r.GrainType, r.TruckReg, r.TrailerReg, r.Gross, r.Tare, r.Net)
 	}
+	w.Flush()
 	fmt.Println(refLineSeparator)
 }
 
