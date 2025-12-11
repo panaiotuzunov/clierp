@@ -7,7 +7,6 @@ import (
 )
 
 func startRepl(stateStruct *State) {
-
 	scanner := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Println("Изберете опцията от менюто. (само код)")
@@ -21,6 +20,8 @@ func startRepl(stateStruct *State) {
 		case "2":
 			newDocRepl(scanner, stateStruct)
 		case "exit":
+			os.Exit(0)
+		case "quit":
 			os.Exit(0)
 		default:
 			fmt.Println("Невалиден избор.")
@@ -45,6 +46,8 @@ outer:
 			break outer
 		case "exit":
 			os.Exit(0)
+		case "quit":
+			os.Exit(0)
 		default:
 			fmt.Println("Невалиден избор.")
 		}
@@ -67,6 +70,8 @@ outer:
 		case "0":
 			break outer
 		case "exit":
+			os.Exit(0)
+		case "quit":
 			os.Exit(0)
 		default:
 			fmt.Println("Невалиден избор.")
