@@ -39,3 +39,38 @@ func (q *Queries) CreatePurchase(ctx context.Context, arg CreatePurchaseParams) 
 	)
 	return err
 }
+
+const getAllPurchases = `-- name: GetAllPurchases :many
+SELECT id, created_at, updated_at, suplier, price, quantity, grain_type FROM purchases
+`
+
+func (q *Queries) GetAllPurchases(ctx context.Context) ([]Purchase, error) {
+	rows, err := q.db.QueryContext(ctx, getAllPurchases)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Purchase
+	for rows.Next() {
+		var i Purchase
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Suplier,
+			&i.Price,
+			&i.Quantity,
+			&i.GrainType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -35,6 +35,7 @@ outer:
 		fmt.Println("Изберете справка от каталога. За връщане назад изберете '0'")
 		fmt.Println("1. Кантарна книга")
 		fmt.Println("2. Наличност")
+		fmt.Println("3. Покупки")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
@@ -42,6 +43,8 @@ outer:
 			printEntranceAndExitReciepts(stateStruct)
 		case "2":
 			printInventory(stateStruct)
+		case "3":
+			printPurchases(stateStruct)
 		case "0":
 			break outer
 		case "exit":

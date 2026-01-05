@@ -47,3 +47,31 @@ func printInventory(stateStruct *State) {
 	}
 	fmt.Println(refLineSeparator)
 }
+
+func printPurchases(stateStruct *State) {
+	purchases, err := stateStruct.db.GetAllPurchases(context.Background())
+	if err != nil {
+		fmt.Println("Грешка при търсене на документи.")
+		return
+	}
+	if len(purchases) == 0 {
+		fmt.Println(refLineSeparator)
+		fmt.Println("Няма намерени документи.")
+		fmt.Println(refLineSeparator)
+		return
+	}
+	fmt.Println(refLineSeparator)
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "НОМЕР\tДАТА\tДОСТАВЧИК\tЗЪРНО\tКОЛИЧЕСТВО\tЦЕНА\t")
+	for _, p := range purchases {
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\n",
+			p.ID,
+			p.CreatedAt.Format("02/01/2006"),
+			p.Suplier,
+			p.GrainType,
+			p.Quantity,
+			p.Price)
+	}
+	w.Flush()
+	fmt.Println(refLineSeparator)
+}

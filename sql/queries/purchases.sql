@@ -10,3 +10,6 @@ VALUES (
     $3,
     $4
 );
+
+-- name: GetAllPurchases :many
+SELECT * FROM purchases;
