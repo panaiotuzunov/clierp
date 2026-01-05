@@ -8,6 +8,16 @@ import (
 	"time"
 )
 
+type Purchase struct {
+	ID        int32
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Suplier   string
+	Price     int32
+	Quantity  int32
+	GrainType string
+}
+
 type Receipt struct {
 	ID         int32
 	CreatedAt  time.Time
