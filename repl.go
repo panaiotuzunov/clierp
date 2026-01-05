@@ -60,13 +60,16 @@ outer:
 		fmt.Println("Изберете тип документ. За връщане назад изберете '0'")
 		fmt.Println("1. Приемна бележка")
 		fmt.Println("2. Пропуск за извозване")
+		fmt.Println("3. Договор за покупка")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			NewReceipt(stateStruct, docTypeEntrace)
+			NewReceipt(scanner, stateStruct, docTypeEntrace)
 		case "2":
-			NewReceipt(stateStruct, docTypeExit)
+			NewReceipt(scanner, stateStruct, docTypeExit)
+		case "3":
+			NewPurchase(scanner, stateStruct)
 		case "0":
 			break outer
 		case "exit":

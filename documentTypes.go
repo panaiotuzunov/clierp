@@ -5,7 +5,6 @@ import (
 	"clierp/internal/database"
 	"context"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -22,8 +21,7 @@ var grainTypes = map[string]struct{}{
 	"рапица":     {},
 }
 
-func NewReceipt(stateStruct *State, docType string) {
-	scanner := bufio.NewScanner(os.Stdin)
+func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
 	currentReceipt := database.CreateReceiptParams{
 		DocType: docType,
 	}
@@ -34,41 +32,12 @@ func NewReceipt(stateStruct *State, docType string) {
 	scanner.Scan()
 	currentReceipt.TrailerReg = scanner.Text()
 	fmt.Println("Въведете вид зърно.")
-	for {
-		scanner.Scan()
-		text := scanner.Text()
-		if _, exist := grainTypes[text]; exist {
-			currentReceipt.GrainType = text
-			break
-		}
-		fmt.Println("Неизвестен тип зърно. Позволени са следните типове:")
-		for grain := range grainTypes {
-			fmt.Println(grain)
-		}
-	}
+	currentReceipt.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество бруто.")
-	for {
-		scanner.Scan()
-		num, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			fmt.Printf("Невалидно число: %v", err)
-			continue
-		}
-		currentReceipt.Gross = int32(num)
-		break
-	}
+	currentReceipt.Gross = int32(scanInt(scanner))
 	fmt.Println("Въведете количество тара.")
-	for {
-		scanner.Scan()
-		num, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			fmt.Printf("Невалидно число: %v", err)
-			continue
-		}
-		currentReceipt.Tare = int32(num)
-		currentReceipt.Net = currentReceipt.Gross - currentReceipt.Tare
-		break
-	}
+	currentReceipt.Tare = int32(scanInt(scanner))
+	currentReceipt.Net = currentReceipt.Gross - currentReceipt.Tare
 	if docType == docTypeExit {
 		currentReceipt.Gross *= -1
 		currentReceipt.Tare *= -1
@@ -79,4 +48,48 @@ func NewReceipt(stateStruct *State, docType string) {
 	}
 	fmt.Println("Документът е създаден успешно.")
 	fmt.Println(refLineSeparator)
+}
+
+func NewPurchase(scanner *bufio.Scanner, stateStruct *State) {
+	var purchase database.CreatePurchaseParams
+	fmt.Println("Въведете доставчик.")
+	scanner.Scan()
+	purchase.Suplier = scanner.Text()
+	fmt.Println("Въведете вид зърно.")
+	purchase.GrainType = scanGrainType(scanner)
+	fmt.Println("Въведете количество.")
+	purchase.Quantity = int32(scanInt(scanner))
+	fmt.Println("Въведете цена.")
+	purchase.Price = int32(scanInt(scanner))
+	if err := stateStruct.db.CreatePurchase(context.Background(), purchase); err != nil {
+		fmt.Println("Неуспешно създаване на документа.")
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}
+
+func scanGrainType(scanner *bufio.Scanner) string {
+	for {
+		scanner.Scan()
+		text := scanner.Text()
+		if _, exist := grainTypes[text]; exist {
+			return text
+		}
+		fmt.Println("Неизвестен тип зърно. Позволени са следните типове:")
+		for grain := range grainTypes {
+			fmt.Println(grain)
+		}
+	}
+}
+
+func scanInt(scanner *bufio.Scanner) int {
+	for {
+		scanner.Scan()
+		num, err := strconv.Atoi(scanner.Text())
+		if err != nil {
+			fmt.Printf("Невалидно число: %v", err)
+			continue
+		}
+		return num
+	}
 }
