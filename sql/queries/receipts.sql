@@ -1,6 +1,6 @@
 -- name: CreateReceipt :exec
 INSERT INTO receipts (
-    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type 
+    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type, purchase_id 
     )
 VALUES (
     NOW(),
@@ -11,7 +11,8 @@ VALUES (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8
 );
 
 -- name: GetAllReceipts :many

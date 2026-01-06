@@ -13,3 +13,7 @@ VALUES (
 
 -- name: GetAllPurchases :many
 SELECT * FROM purchases;
+
+-- name: GetPurchaseById :one
+SELECT * FROM purchases
+WHERE id = $1;

@@ -5,6 +5,7 @@
 package database
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -29,4 +30,5 @@ type Receipt struct {
 	Net        int32
 	DocType    string
 	GrainType  string
+	PurchaseID sql.NullInt32
 }

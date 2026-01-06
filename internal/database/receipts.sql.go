@@ -7,11 +7,12 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createReceipt = `-- name: CreateReceipt :exec
 INSERT INTO receipts (
-    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type 
+    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type, purchase_id 
     )
 VALUES (
     NOW(),
@@ -22,7 +23,8 @@ VALUES (
     $4,
     $5,
     $6,
-    $7
+    $7,
+    $8
 )
 `
 
@@ -34,6 +36,7 @@ type CreateReceiptParams struct {
 	Net        int32
 	DocType    string
 	GrainType  string
+	PurchaseID sql.NullInt32
 }
 
 func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) error {
@@ -45,12 +48,13 @@ func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) er
 		arg.Net,
 		arg.DocType,
 		arg.GrainType,
+		arg.PurchaseID,
 	)
 	return err
 }
 
 const getAllReceipts = `-- name: GetAllReceipts :many
-SELECT id, created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type FROM receipts
+SELECT id, created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type, purchase_id FROM receipts
 `
 
 func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
@@ -73,6 +77,7 @@ func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
 			&i.Net,
 			&i.DocType,
 			&i.GrainType,
+			&i.PurchaseID,
 		); err != nil {
 			return nil, err
 		}

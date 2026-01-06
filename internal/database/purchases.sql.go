@@ -74,3 +74,23 @@ func (q *Queries) GetAllPurchases(ctx context.Context) ([]Purchase, error) {
 	}
 	return items, nil
 }
+
+const getPurchaseById = `-- name: GetPurchaseById :one
+SELECT id, created_at, updated_at, suplier, price, quantity, grain_type FROM purchases
+WHERE id = $1
+`
+
+func (q *Queries) GetPurchaseById(ctx context.Context, id int32) (Purchase, error) {
+	row := q.db.QueryRowContext(ctx, getPurchaseById, id)
+	var i Purchase
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Suplier,
+		&i.Price,
+		&i.Quantity,
+		&i.GrainType,
+	)
+	return i, err
+}

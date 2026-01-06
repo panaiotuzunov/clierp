@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"clierp/internal/database"
 	"context"
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -24,6 +25,31 @@ var grainTypes = map[string]struct{}{
 func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
 	currentReceipt := database.CreateReceiptParams{
 		DocType: docType,
+	}
+	if docType == docTypeEntrace {
+		purchases, err := stateStruct.db.GetAllPurchases(context.Background())
+		if len(purchases) == 0 {
+			fmt.Println("Приемна бележка се създава на база на договор за покупка. В момента няма активни договори. Моля, създайте нов договор.")
+			return
+		}
+		if err != nil {
+			fmt.Println("Грешка при търсене на договори.")
+			return
+		}
+		fmt.Println("Изберете номер договoр за покупка. Активни договори към момента са:")
+		printPurchases(stateStruct)
+		for {
+			purchase, err := stateStruct.db.GetPurchaseById(context.Background(), int32(scanInt(scanner)))
+			if err != nil {
+				fmt.Println("Невалиден номер на договор опитайте пак.")
+				continue
+			}
+			currentReceipt.PurchaseID = sql.NullInt32{
+				Valid: true,
+				Int32: purchase.ID,
+			}
+			break
+		}
 	}
 	fmt.Println("Въведете номер на камион.")
 	scanner.Scan()
