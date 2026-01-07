@@ -8,6 +8,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createReceipt = `-- name: CreateReceipt :exec
@@ -54,18 +55,36 @@ func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) er
 }
 
 const getAllReceipts = `-- name: GetAllReceipts :many
-SELECT id, created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type, purchase_id FROM receipts
+SELECT receipts.id, receipts.created_at, receipts.updated_at, receipts.truck_reg, receipts.trailer_reg, receipts.gross, receipts.tare, receipts.net, receipts.doc_type, receipts.grain_type, receipts.purchase_id, purchases.suplier
+FROM receipts
+LEFT JOIN purchases
+ON receipts.purchase_id = purchases.id
 `
 
-func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
+type GetAllReceiptsRow struct {
+	ID         int32
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	TruckReg   string
+	TrailerReg string
+	Gross      int32
+	Tare       int32
+	Net        int32
+	DocType    string
+	GrainType  string
+	PurchaseID sql.NullInt32
+	Suplier    sql.NullString
+}
+
+func (q *Queries) GetAllReceipts(ctx context.Context) ([]GetAllReceiptsRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllReceipts)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Receipt
+	var items []GetAllReceiptsRow
 	for rows.Next() {
-		var i Receipt
+		var i GetAllReceiptsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
@@ -78,6 +97,7 @@ func (q *Queries) GetAllReceipts(ctx context.Context) ([]Receipt, error) {
 			&i.DocType,
 			&i.GrainType,
 			&i.PurchaseID,
+			&i.Suplier,
 		); err != nil {
 			return nil, err
 		}

@@ -21,11 +21,19 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 	}
 	fmt.Println(refLineSeparator)
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ТИП\tНОМЕР\tДАТА\tЗЪРНО\tКАМИОН\tРЕМАРКЕ\tБРУТО\tТАРА\tНЕТО")
+	fmt.Fprintln(w, "ТИП\tНОМЕР\tДАТА\tЗЪРНО\tКАМИОН\tРЕМАРКЕ\tБРУТО\tТАРА\tНЕТО\tДОСТАВЧИК\tПОКУПКА №")
 	for _, r := range receipts {
-		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\n",
-			r.DocType, r.ID, r.CreatedAt.Format("02/01/2006"),
-			r.GrainType, r.TruckReg, r.TrailerReg, r.Gross, r.Tare, r.Net)
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%s\t%d\n",
+			r.DocType,
+			r.ID,
+			r.CreatedAt.Format("02/01/2006"),
+			r.GrainType,
+			r.TruckReg,
+			r.TrailerReg,
+			r.Gross, r.Tare,
+			r.Net,
+			r.Suplier.String,
+			r.PurchaseID.Int32)
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)

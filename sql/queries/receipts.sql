@@ -16,7 +16,10 @@ VALUES (
 );
 
 -- name: GetAllReceipts :many
-SELECT * FROM receipts;
+SELECT receipts.*, purchases.suplier
+FROM receipts
+LEFT JOIN purchases
+ON receipts.purchase_id = purchases.id; 
 
 -- name: GetCurrentInventoryByType :many
 SELECT grain_type, SUM(net)
