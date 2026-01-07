@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"time"
 )
 
 const createPurchase = `-- name: CreatePurchase :exec
@@ -41,18 +42,33 @@ func (q *Queries) CreatePurchase(ctx context.Context, arg CreatePurchaseParams) 
 }
 
 const getAllPurchases = `-- name: GetAllPurchases :many
-SELECT id, created_at, updated_at, suplier, price, quantity, grain_type FROM purchases
+SELECT p.id, p.created_at, p.updated_at, p.suplier, p.price, p.quantity, p.grain_type, SUM(r.net) AS expedited 
+FROM purchases p
+LEFT JOIN receipts r
+ON p.id = r.purchase_id
+GROUP BY p.id
 `
 
-func (q *Queries) GetAllPurchases(ctx context.Context) ([]Purchase, error) {
+type GetAllPurchasesRow struct {
+	ID        int32
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	Suplier   string
+	Price     int32
+	Quantity  int32
+	GrainType string
+	Expedited int64
+}
+
+func (q *Queries) GetAllPurchases(ctx context.Context) ([]GetAllPurchasesRow, error) {
 	rows, err := q.db.QueryContext(ctx, getAllPurchases)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Purchase
+	var items []GetAllPurchasesRow
 	for rows.Next() {
-		var i Purchase
+		var i GetAllPurchasesRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
@@ -61,6 +77,7 @@ func (q *Queries) GetAllPurchases(ctx context.Context) ([]Purchase, error) {
 			&i.Price,
 			&i.Quantity,
 			&i.GrainType,
+			&i.Expedited,
 		); err != nil {
 			return nil, err
 		}

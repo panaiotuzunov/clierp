@@ -12,7 +12,11 @@ VALUES (
 );
 
 -- name: GetAllPurchases :many
-SELECT * FROM purchases;
+SELECT p.*, SUM(r.net) AS expedited 
+FROM purchases p
+LEFT JOIN receipts r
+ON p.id = r.purchase_id
+GROUP BY p.id;
 
 -- name: GetPurchaseById :one
 SELECT * FROM purchases
