@@ -12,7 +12,7 @@ VALUES (
 );
 
 -- name: GetAllPurchases :many
-SELECT p.*, SUM(r.net) AS expedited 
+SELECT p.*, COALESCE(SUM(r.net), 0)::INT AS expedited 
 FROM purchases p
 LEFT JOIN receipts r
 ON p.id = r.purchase_id

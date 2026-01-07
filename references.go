@@ -10,7 +10,7 @@ import (
 func printEntranceAndExitReciepts(stateStruct *State) {
 	receipts, err := stateStruct.db.GetAllReceipts(context.Background())
 	if err != nil {
-		fmt.Println("Грешка при търсене на документи.")
+		fmt.Printf("Грешка при търсене на документи - %v", err)
 		return
 	}
 	if len(receipts) == 0 {
@@ -70,16 +70,17 @@ func printPurchases(stateStruct *State) {
 	}
 	fmt.Println(refLineSeparator)
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "НОМЕР\tДАТА\tДОСТАВЧИК\tЗЪРНО\tКОЛИЧЕСТВО\tЦЕНА\tЕКСПЕДИРАНО")
+	fmt.Fprintln(w, "НОМЕР\tДАТА\tДОСТАВЧИК\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, p := range purchases {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\n",
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
 			p.ID,
 			p.CreatedAt.Format("02/01/2006"),
 			p.Suplier,
 			p.GrainType,
-			p.Quantity,
 			p.Price,
-			p.Expedited)
+			p.Quantity,
+			p.Expedited,
+			p.Quantity-p.Expedited)
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
