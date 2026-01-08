@@ -10,7 +10,7 @@ import (
 func printEntranceAndExitReciepts(stateStruct *State) {
 	receipts, err := stateStruct.db.GetAllReceipts(context.Background())
 	if err != nil {
-		fmt.Printf("Грешка при търсене на документи - %v", err)
+		fmt.Printf("Грешка при търсене на документи - %v\n", err)
 		return
 	}
 	if len(receipts) == 0 {
@@ -42,7 +42,8 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 func printInventory(stateStruct *State) {
 	inventory, err := stateStruct.db.GetCurrentInventoryByType(context.Background())
 	if err != nil {
-		fmt.Println("Грешка при калкулиране на наличност.")
+		fmt.Printf("Грешка при калкулиране на наличност - %v", err)
+		return
 	}
 	if len(inventory) == 0 {
 		fmt.Println("Няма текуща наличност.")
@@ -59,7 +60,7 @@ func printInventory(stateStruct *State) {
 func printPurchases(stateStruct *State) {
 	purchases, err := stateStruct.db.GetAllPurchases(context.Background())
 	if err != nil {
-		fmt.Printf("Грешка при търсене на документи - %v", err)
+		fmt.Printf("Грешка при търсене на документи - %v\n", err)
 		return
 	}
 	if len(purchases) == 0 {

@@ -33,15 +33,15 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
 			return
 		}
 		if err != nil {
-			fmt.Println("Грешка при търсене на договори.")
+			fmt.Printf("Грешка при търсене на договори - %v\n", err)
 			return
 		}
-		fmt.Println("Изберете номер договoр за покупка. Активни договори към момента са:")
+		fmt.Println("Изберете номер na договoр за покупка. Активни договори към момента са:")
 		printPurchases(stateStruct)
 		for {
 			purchase, err := stateStruct.db.GetPurchaseById(context.Background(), int32(scanInt(scanner)))
 			if err != nil {
-				fmt.Println("Невалиден номер на договор опитайте пак.")
+				fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
 				continue
 			}
 			currentReceipt.PurchaseID = sql.NullInt32{
@@ -70,7 +70,8 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
 		currentReceipt.Net *= -1
 	}
 	if err := stateStruct.db.CreateReceipt(context.Background(), currentReceipt); err != nil {
-		fmt.Println("Неуспешно създаване на документа.")
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
 	}
 	fmt.Println("Документът е създаден успешно.")
 	fmt.Println(refLineSeparator)
@@ -88,7 +89,8 @@ func NewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println("Въведете цена.")
 	purchase.Price = int32(scanInt(scanner))
 	if err := stateStruct.db.CreatePurchase(context.Background(), purchase); err != nil {
-		fmt.Println("Неуспешно създаване на документа.")
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
 	}
 	fmt.Println("Документът е създаден успешно.")
 	fmt.Println(refLineSeparator)
@@ -113,7 +115,7 @@ func scanInt(scanner *bufio.Scanner) int {
 		scanner.Scan()
 		num, err := strconv.Atoi(scanner.Text())
 		if err != nil {
-			fmt.Printf("Невалидно число: %v", err)
+			fmt.Printf("Невалидно число: %v\n", err)
 			continue
 		}
 		return num
