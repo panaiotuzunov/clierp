@@ -96,6 +96,25 @@ func NewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println(refLineSeparator)
 }
 
+func NewSale(scanner *bufio.Scanner, stateStruct *State) {
+	var sale database.CreateSaleParams
+	fmt.Println("Въведете клиент.")
+	scanner.Scan()
+	sale.Client = scanner.Text()
+	fmt.Println("Въведете вид зърно.")
+	sale.GrainType = scanGrainType(scanner)
+	fmt.Println("Въведете количество.")
+	sale.Quantity = int32(scanInt(scanner))
+	fmt.Println("Въведете цена.")
+	sale.Price = int32(scanInt(scanner))
+	if err := stateStruct.db.CreateSale(context.Background(), sale); err != nil {
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}
+
 func scanGrainType(scanner *bufio.Scanner) string {
 	for {
 		scanner.Scan()

@@ -36,6 +36,7 @@ outer:
 		fmt.Println("1. Кантарна книга")
 		fmt.Println("2. Наличност")
 		fmt.Println("3. Покупки")
+		fmt.Println("4. Продажби")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
@@ -45,6 +46,8 @@ outer:
 			printInventory(stateStruct)
 		case "3":
 			printPurchases(stateStruct)
+		case "4":
+			printSales(stateStruct)
 		case "0":
 			break outer
 		case "exit":
@@ -64,6 +67,7 @@ outer:
 		fmt.Println("1. Приемна бележка")
 		fmt.Println("2. Пропуск за извозване")
 		fmt.Println("3. Договор за покупка")
+		fmt.Println("4. Договор за продажба")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
@@ -73,6 +77,8 @@ outer:
 			NewReceipt(scanner, stateStruct, docTypeExit)
 		case "3":
 			NewPurchase(scanner, stateStruct)
+		case "4":
+			NewSale(scanner, stateStruct)
 		case "0":
 			break outer
 		case "exit":

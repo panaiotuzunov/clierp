@@ -88,3 +88,33 @@ func printPurchases(stateStruct *State) {
 	w.Flush()
 	fmt.Println(refLineSeparator)
 }
+
+func printSales(stateStruct *State) {
+	sales, err := stateStruct.db.GetAllSales(context.Background())
+	if err != nil {
+		fmt.Printf("Грешка при търсене на документи - %v\n", err)
+		return
+	}
+	if len(sales) == 0 {
+		fmt.Println(refLineSeparator)
+		fmt.Println("Няма намерени документи.")
+		fmt.Println(refLineSeparator)
+		return
+	}
+	fmt.Println(refLineSeparator)
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
+	for _, p := range sales {
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
+			p.ID,
+			p.CreatedAt.Format("02/01/2006"),
+			p.Client,
+			p.GrainType,
+			p.Price,
+			p.Quantity,
+			p.Expedited,
+			p.Quantity-p.Expedited)
+	}
+	w.Flush()
+	fmt.Println(refLineSeparator)
+}
