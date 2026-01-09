@@ -13,7 +13,6 @@ ALTER TABLE receipts
 ADD COLUMN sale_id INT REFERENCES sales(id);
 
 -- +goose Down
-
 ALTER TABLE receipts
 DROP COLUMN sale_id;
 
