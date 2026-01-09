@@ -46,7 +46,9 @@ func printInventory(stateStruct *State) {
 		return
 	}
 	if len(inventory) == 0 {
+		fmt.Println(refLineSeparator)
 		fmt.Println("Няма текуща наличност.")
+		fmt.Println(refLineSeparator)
 		return
 	}
 	fmt.Println(refLineSeparator)

@@ -9,8 +9,7 @@ CREATE TABLE receipts (
     tare INT NOT NULL,
     net INT NOT NULL,
     doc_type TEXT NOT NULL,
-    grain_type TEXT NOT NULL,
-    purchase_id INT REFERENCES purchases(id)
+    grain_type TEXT NOT NULL
 );
 
 -- +goose Down

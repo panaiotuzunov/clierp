@@ -9,5 +9,13 @@ CREATE TABLE purchases (
     grain_type TEXT NOT NULL
 );
 
+ALTER TABLE receipts
+ADD COLUMN purchase_id INT REFERENCES purchases(id);
+
 -- +goose Down
+ALTER TABLE receipts
+DROP COLUMN purchase_id; 
+
 DROP TABLE purchases;
+
+    
