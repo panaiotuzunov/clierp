@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-const docTypeExit = "Пропуск за извозване"
-const docTypeEntrace = "Приемна бележка"
+const receiptTypeExit = "Пропуск за извозване"
+const receiptTypeEntrace = "Приемна бележка"
 
 var refLineSeparator = strings.Repeat("-", 120)
 var grainTypes = map[string]struct{}{
@@ -22,11 +22,11 @@ var grainTypes = map[string]struct{}{
 	"рапица":     {},
 }
 
-func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
+func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) {
 	currentReceipt := database.CreateReceiptParams{
-		DocType: docType,
+		DocType: receiptType,
 	}
-	if docType == docTypeEntrace {
+	if receiptType == receiptTypeEntrace {
 		purchases, err := stateStruct.db.GetAllPurchases(context.Background())
 		if len(purchases) == 0 {
 			fmt.Println("Приемна бележка се създава на база на договор за покупка. В момента няма активни договори. Моля, създайте нов договор.")
@@ -48,6 +48,36 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
 				Valid: true,
 				Int32: purchase.ID,
 			}
+			currentReceipt.SaleID = sql.NullInt32{
+				Valid: false,
+			}
+			break
+		}
+	} else { // receiptType == receiptTypeExit
+		sales, err := stateStruct.db.GetAllSales(context.Background())
+		if len(sales) == 0 {
+			fmt.Println("Пропуск за извозване се създава на база на договор за продажба. В момента няма активни договори. Моля, създайте нов договор.")
+			return
+		}
+		if err != nil {
+			fmt.Printf("Грешка при търсене на договори - %v\n", err)
+			return
+		}
+		fmt.Println("Изберете номер na договoр за продажба. Активни договори към момента са:")
+		printSales(stateStruct)
+		for {
+			sale, err := stateStruct.db.GetSaleById(context.Background(), int32(scanInt(scanner)))
+			if err != nil {
+				fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+				continue
+			}
+			currentReceipt.SaleID = sql.NullInt32{
+				Valid: true,
+				Int32: sale.ID,
+			}
+			currentReceipt.PurchaseID = sql.NullInt32{
+				Valid: false,
+			}
 			break
 		}
 	}
@@ -64,7 +94,7 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, docType string) {
 	fmt.Println("Въведете количество тара.")
 	currentReceipt.Tare = int32(scanInt(scanner))
 	currentReceipt.Net = currentReceipt.Gross - currentReceipt.Tare
-	if docType == docTypeExit {
+	if receiptType == receiptTypeExit {
 		currentReceipt.Gross *= -1
 		currentReceipt.Tare *= -1
 		currentReceipt.Net *= -1

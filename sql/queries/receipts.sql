@@ -1,6 +1,6 @@
 -- name: CreateReceipt :exec
 INSERT INTO receipts (
-    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type, purchase_id 
+    created_at, updated_at, truck_reg, trailer_reg, gross, tare, net, doc_type, grain_type, purchase_id, sale_id 
     )
 VALUES (
     NOW(),
@@ -12,14 +12,17 @@ VALUES (
     $5,
     $6,
     $7,
-    $8
+    $8,
+    $9
 );
 
 -- name: GetAllReceipts :many
-SELECT receipts.*, purchases.suplier
+SELECT receipts.*, purchases.suplier, sales.client
 FROM receipts
 LEFT JOIN purchases
-ON receipts.purchase_id = purchases.id; 
+ON receipts.purchase_id = purchases.id
+LEFT JOIN sales
+ON receipts.sale_id = sales.id;
 
 -- name: GetCurrentInventoryByType :many
 SELECT grain_type, SUM(net)

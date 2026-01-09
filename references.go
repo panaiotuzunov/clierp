@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"math"
 	"os"
 	"text/tabwriter"
 )
@@ -21,9 +23,9 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 	}
 	fmt.Println(refLineSeparator)
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "ТИП\tНОМЕР\tДАТА\tЗЪРНО\tКАМИОН\tРЕМАРКЕ\tБРУТО\tТАРА\tНЕТО\tДОСТАВЧИК\tПОКУПКА №")
+	fmt.Fprintln(w, "ТИП\tНОМЕР\tДАТА\tЗЪРНО\tКАМИОН\tРЕМАРКЕ\tБРУТО\tТАРА\tНЕТО\tДОСТАВЧИК\tПОКУПКА №\tКЛИЕНТ\tПРОДАЖБА №")
 	for _, r := range receipts {
-		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%s\t%d\n",
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%s\t%v\t%s\t%v\n",
 			r.DocType,
 			r.ID,
 			r.CreatedAt.Format("02/01/2006"),
@@ -33,7 +35,9 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 			r.Gross, r.Tare,
 			r.Net,
 			r.Suplier.String,
-			r.PurchaseID.Int32)
+			nullIntToStr(r.PurchaseID),
+			r.Client.String,
+			nullIntToStr(r.SaleID))
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
@@ -104,17 +108,24 @@ func printSales(stateStruct *State) {
 	fmt.Println(refLineSeparator)
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
-	for _, p := range sales {
+	for _, s := range sales {
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
-			p.ID,
-			p.CreatedAt.Format("02/01/2006"),
-			p.Client,
-			p.GrainType,
-			p.Price,
-			p.Quantity,
-			p.Expedited,
-			p.Quantity-p.Expedited)
+			s.ID,
+			s.CreatedAt.Format("02/01/2006"),
+			s.Client,
+			s.GrainType,
+			s.Price,
+			s.Quantity,
+			int32(math.Abs(float64(s.Expedited))),
+			s.Quantity-int32(math.Abs(float64(s.Expedited))))
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
+}
+
+func nullIntToStr(n sql.NullInt32) any {
+	if !n.Valid {
+		return ""
+	}
+	return n.Int32
 }

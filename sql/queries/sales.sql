@@ -17,3 +17,7 @@ FROM sales s
 LEFT JOIN receipts r
 ON s.id = r.sale_id
 GROUP BY s.id;
+
+-- name: GetSaleById :one
+SELECT * FROM sales
+WHERE id = $1;

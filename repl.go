@@ -72,9 +72,9 @@ outer:
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			NewReceipt(scanner, stateStruct, docTypeEntrace)
+			NewReceipt(scanner, stateStruct, receiptTypeEntrace)
 		case "2":
-			NewReceipt(scanner, stateStruct, docTypeExit)
+			NewReceipt(scanner, stateStruct, receiptTypeExit)
 		case "3":
 			NewPurchase(scanner, stateStruct)
 		case "4":
