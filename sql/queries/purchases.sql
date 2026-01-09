@@ -16,7 +16,8 @@ SELECT p.*, COALESCE(SUM(r.net), 0)::INT AS expedited
 FROM purchases p
 LEFT JOIN receipts r
 ON p.id = r.purchase_id
-GROUP BY p.id;
+GROUP BY p.id
+ORDER BY p.id;
 
 -- name: GetPurchaseById :one
 SELECT * FROM purchases
