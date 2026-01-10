@@ -123,6 +123,38 @@ func printSales(stateStruct *State) {
 	fmt.Println(refLineSeparator)
 }
 
+func printTransports(stateStruct *State) {
+	transports, err := stateStruct.db.GetAllTransports(context.Background())
+	if err != nil {
+		fmt.Printf("Грешка при търсене на документи - %v\n", err)
+		return
+	}
+	if len(transports) == 0 {
+		fmt.Println(refLineSeparator)
+		fmt.Println("Няма намерени документи.")
+		fmt.Println(refLineSeparator)
+		return
+	}
+	fmt.Println(refLineSeparator)
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "НОМЕР\tДАТА\tКАМИОН\tРЕМАРКЕ\tКОЛИЧЕСТВО\tЗЪРНО\tДОСТАВЧИК\tПОКУПКА №\tКЛИЕНТ\tПРОДАЖБА №")
+	for _, t := range transports {
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%s\t%s\t%d\t%s\t%d\n",
+			t.ID,
+			t.CreatedAt.Format("02/01/2006"),
+			t.TruckReg,
+			t.TrailerReg,
+			t.Net,
+			t.GrainType,
+			t.Suplier.String,
+			t.PurchaseID.Int32,
+			t.Client.String,
+			t.SaleID.Int32)
+	}
+	w.Flush()
+	fmt.Println(refLineSeparator)
+}
+
 func nullIntToStr(n sql.NullInt32) any {
 	if !n.Valid {
 		return ""

@@ -145,6 +145,74 @@ func NewSale(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println(refLineSeparator)
 }
 
+func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
+	var transport database.CreateTransportParams
+	// select purchase
+	purchases, err := stateStruct.db.GetAllPurchases(context.Background())
+	if len(purchases) == 0 {
+		fmt.Println("В момента няма активни договори за покупка. Моля, създайте нов договор.")
+		return
+	}
+	if err != nil {
+		fmt.Printf("Грешка при търсене на договори - %v\n", err)
+		return
+	}
+	fmt.Println("Изберете номер на договoр за покупка. Активни договори към момента са:")
+	printPurchases(stateStruct)
+	for {
+		purchase, err := stateStruct.db.GetPurchaseById(context.Background(), int32(scanInt(scanner)))
+		if err != nil {
+			fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+			continue
+		}
+		transport.PurchaseID = sql.NullInt32{
+			Valid: true,
+			Int32: purchase.ID,
+		}
+		break
+	}
+	// select sale
+	sales, err := stateStruct.db.GetAllSales(context.Background())
+	if len(sales) == 0 {
+		fmt.Println("В момента няма активни договори за продажба. Моля, създайте нов договор.")
+		return
+	}
+	if err != nil {
+		fmt.Printf("Грешка при търсене на договори - %v\n", err)
+		return
+	}
+	fmt.Println("Изберете номер нa договoр за продажба. Активни договори към момента са:")
+	printSales(stateStruct)
+	for {
+		sale, err := stateStruct.db.GetSaleById(context.Background(), int32(scanInt(scanner)))
+		if err != nil {
+			fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+			continue
+		}
+		transport.SaleID = sql.NullInt32{
+			Valid: true,
+			Int32: sale.ID,
+		}
+		break
+	}
+	fmt.Println("Въведете номер на камион.")
+	scanner.Scan()
+	transport.TruckReg = scanner.Text()
+	fmt.Println("Въведете номер на ремарке.")
+	scanner.Scan()
+	transport.TrailerReg = scanner.Text()
+	fmt.Println("Въведете вид зърно.")
+	transport.GrainType = scanGrainType(scanner)
+	fmt.Println("Въведете количество нето.")
+	transport.Net = int32(scanInt(scanner))
+	if err := stateStruct.db.CreateTransport(context.Background(), transport); err != nil {
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}
+
 func scanGrainType(scanner *bufio.Scanner) string {
 	for {
 		scanner.Scan()
