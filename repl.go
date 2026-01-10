@@ -72,6 +72,7 @@ outer:
 		fmt.Println("3. Договор за покупка")
 		fmt.Println("4. Договор за продажба")
 		fmt.Println("5. Директно извозване")
+		fmt.Println("6. Спам покупки")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
@@ -85,6 +86,8 @@ outer:
 			NewSale(scanner, stateStruct)
 		case "5":
 			NewTransport(scanner, stateStruct)
+		case "6":
+			SpamNewPurchase(scanner, stateStruct)
 		case "0":
 			break outer
 		case "exit":
