@@ -52,6 +52,7 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 			currentReceipt.SaleID = sql.NullInt32{
 				Valid: false,
 			}
+			currentReceipt.GrainType = purchase.GrainType
 			break
 		}
 	} else { // receiptType == receiptTypeExit
@@ -79,6 +80,7 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 			currentReceipt.PurchaseID = sql.NullInt32{
 				Valid: false,
 			}
+			currentReceipt.GrainType = sale.GrainType
 			break
 		}
 	}
@@ -88,8 +90,6 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 	fmt.Println("Въведете номер на ремарке.")
 	scanner.Scan()
 	currentReceipt.TrailerReg = scanner.Text()
-	fmt.Println("Въведете вид зърно.")
-	currentReceipt.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество бруто.")
 	currentReceipt.Gross = int32(scanInt(scanner))
 	fmt.Println("Въведете количество тара.")
