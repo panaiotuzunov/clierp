@@ -66,7 +66,7 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 			return
 		}
 		fmt.Println("Изберете номер na договoр за продажба. Активни договори към момента са:")
-		printSales(stateStruct)
+		printAllSales(stateStruct)
 		for {
 			sale, err := stateStruct.db.GetSaleById(context.Background(), int32(scanInt(scanner)))
 			if err != nil {
@@ -170,10 +170,11 @@ func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
 			Valid: true,
 			Int32: purchase.ID,
 		}
+		transport.GrainType = purchase.GrainType
 		break
 	}
 	// select sale
-	sales, err := stateStruct.db.GetAllSales(context.Background())
+	sales, err := stateStruct.db.GetSalesByGrainType(context.Background(), transport.GrainType)
 	if len(sales) == 0 {
 		fmt.Println("В момента няма активни договори за продажба. Моля, създайте нов договор.")
 		return
@@ -183,9 +184,12 @@ func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
 		return
 	}
 	fmt.Println("Изберете номер нa договoр за продажба. Активни договори към момента са:")
-	printSales(stateStruct)
+	printSalesByGrainType(stateStruct, transport.GrainType)
 	for {
-		sale, err := stateStruct.db.GetSaleById(context.Background(), int32(scanInt(scanner)))
+		sale, err := stateStruct.db.GetSaleByIdandGrainType(context.Background(), database.GetSaleByIdandGrainTypeParams{
+			ID:        int32(scanInt(scanner)),
+			GrainType: transport.GrainType,
+		})
 		if err != nil {
 			fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
 			continue
@@ -202,8 +206,6 @@ func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println("Въведете номер на ремарке.")
 	scanner.Scan()
 	transport.TrailerReg = scanner.Text()
-	fmt.Println("Въведете вид зърно.")
-	transport.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество нето.")
 	transport.Net = int32(scanInt(scanner))
 	if err := stateStruct.db.CreateTransport(context.Background(), transport); err != nil {

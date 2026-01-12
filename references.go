@@ -93,8 +93,38 @@ func printPurchases(stateStruct *State) {
 	fmt.Println(refLineSeparator)
 }
 
-func printSales(stateStruct *State) {
+func printAllSales(stateStruct *State) {
 	sales, err := stateStruct.db.GetAllSales(context.Background())
+	if err != nil {
+		fmt.Printf("Грешка при търсене на документи - %v\n", err)
+		return
+	}
+	if len(sales) == 0 {
+		fmt.Println(refLineSeparator)
+		fmt.Println("Няма намерени документи.")
+		fmt.Println(refLineSeparator)
+		return
+	}
+	fmt.Println(refLineSeparator)
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
+	for _, s := range sales {
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
+			s.ID,
+			s.CreatedAt.Format("02/01/2006"),
+			s.Client,
+			s.GrainType,
+			s.Price,
+			s.Quantity,
+			int32(math.Abs(float64(s.Expedited))),
+			s.Quantity-int32(math.Abs(float64(s.Expedited))))
+	}
+	w.Flush()
+	fmt.Println(refLineSeparator)
+}
+
+func printSalesByGrainType(stateStruct *State, graintype string) {
+	sales, err := stateStruct.db.GetSalesByGrainType(context.Background(), graintype)
 	if err != nil {
 		fmt.Printf("Грешка при търсене на документи - %v\n", err)
 		return

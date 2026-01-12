@@ -48,7 +48,7 @@ outer:
 		case "3":
 			printPurchases(stateStruct)
 		case "4":
-			printSales(stateStruct)
+			printAllSales(stateStruct)
 		case "5":
 			printTransports(stateStruct)
 		case "0":
