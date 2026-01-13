@@ -5,7 +5,7 @@ CREATE TABLE transports (
     updated_at TIMESTAMP NOT NULL,
     truck_reg TEXT NOT NULL,
     trailer_reg TEXT NOT NULL,
-    net INT NOT NULL,
+    net NUMERIC(12, 3) NOT NULL,
     grain_type TEXT NOT NULL,
     sale_id INT REFERENCES sales(id),
     purchase_id INT REFERENCES purchases(id)

@@ -4,8 +4,8 @@ CREATE TABLE purchases (
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
     suplier TEXT NOT NULL,
-    price INT NOT NULL,
-    quantity INT NOT NULL,
+    price NUMERIC(12, 3) NOT NULL,
+    quantity NUMERIC(12, 3) NOT NULL,
     grain_type TEXT NOT NULL
 );
 

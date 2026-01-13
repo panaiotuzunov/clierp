@@ -6,7 +6,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -24,7 +23,7 @@ var grainTypes = map[string]struct{}{
 }
 
 func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) {
-	currentReceipt := database.CreateReceiptParams{
+	receipt := database.CreateReceiptParams{
 		DocType: receiptType,
 	}
 	if receiptType == receiptTypeEntrace {
@@ -45,14 +44,14 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 				fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
 				continue
 			}
-			currentReceipt.PurchaseID = sql.NullInt32{
+			receipt.PurchaseID = sql.NullInt32{
 				Valid: true,
 				Int32: purchase.ID,
 			}
-			currentReceipt.SaleID = sql.NullInt32{
+			receipt.SaleID = sql.NullInt32{
 				Valid: false,
 			}
-			currentReceipt.GrainType = purchase.GrainType
+			receipt.GrainType = purchase.GrainType
 			break
 		}
 	} else { // receiptType == receiptTypeExit
@@ -73,34 +72,34 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 				fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
 				continue
 			}
-			currentReceipt.SaleID = sql.NullInt32{
+			receipt.SaleID = sql.NullInt32{
 				Valid: true,
 				Int32: sale.ID,
 			}
-			currentReceipt.PurchaseID = sql.NullInt32{
+			receipt.PurchaseID = sql.NullInt32{
 				Valid: false,
 			}
-			currentReceipt.GrainType = sale.GrainType
+			receipt.GrainType = sale.GrainType
 			break
 		}
 	}
 	fmt.Println("Въведете номер на камион.")
 	scanner.Scan()
-	currentReceipt.TruckReg = scanner.Text()
+	receipt.TruckReg = scanner.Text()
 	fmt.Println("Въведете номер на ремарке.")
 	scanner.Scan()
-	currentReceipt.TrailerReg = scanner.Text()
+	receipt.TrailerReg = scanner.Text()
 	fmt.Println("Въведете количество бруто.")
-	currentReceipt.Gross = int32(scanInt(scanner))
+	gross := scanFloat64(scanner)
 	fmt.Println("Въведете количество тара.")
-	currentReceipt.Tare = int32(scanInt(scanner))
-	currentReceipt.Net = currentReceipt.Gross - currentReceipt.Tare
+	tare := scanFloat64(scanner)
 	if receiptType == receiptTypeExit {
-		currentReceipt.Gross *= -1
-		currentReceipt.Tare *= -1
-		currentReceipt.Net *= -1
+		gross *= -1
+		tare *= -1
 	}
-	if err := stateStruct.db.CreateReceipt(context.Background(), currentReceipt); err != nil {
+	receipt.Gross = float64toStrForDB(gross)
+	receipt.Tare = float64toStrForDB(tare)
+	if err := stateStruct.db.CreateReceipt(context.Background(), receipt); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
 	}
@@ -116,9 +115,9 @@ func NewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println("Въведете вид зърно.")
 	purchase.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество.")
-	purchase.Quantity = int32(scanInt(scanner))
+	purchase.Quantity = float64toStrForDB(scanFloat64(scanner))
 	fmt.Println("Въведете цена.")
-	purchase.Price = int32(scanInt(scanner))
+	purchase.Price = float64toStrForDB(scanFloat64(scanner))
 	if err := stateStruct.db.CreatePurchase(context.Background(), purchase); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
@@ -135,9 +134,9 @@ func NewSale(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println("Въведете вид зърно.")
 	sale.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество.")
-	sale.Quantity = int32(scanInt(scanner))
+	sale.Quantity = float64toStrForDB(scanFloat64(scanner))
 	fmt.Println("Въведете цена.")
-	sale.Price = int32(scanInt(scanner))
+	sale.Price = float64toStrForDB(scanFloat64(scanner))
 	if err := stateStruct.db.CreateSale(context.Background(), sale); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
@@ -207,39 +206,13 @@ func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
 	scanner.Scan()
 	transport.TrailerReg = scanner.Text()
 	fmt.Println("Въведете количество нето.")
-	transport.Net = int32(scanInt(scanner))
+	transport.Net = float64toStrForDB(scanFloat64(scanner))
 	if err := stateStruct.db.CreateTransport(context.Background(), transport); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
 	}
 	fmt.Println("Документът е създаден успешно.")
 	fmt.Println(refLineSeparator)
-}
-
-func scanGrainType(scanner *bufio.Scanner) string {
-	for {
-		scanner.Scan()
-		text := scanner.Text()
-		if _, exist := grainTypes[text]; exist {
-			return text
-		}
-		fmt.Println("Неизвестен тип зърно. Позволени са следните типове:")
-		for grain := range grainTypes {
-			fmt.Println(grain)
-		}
-	}
-}
-
-func scanInt(scanner *bufio.Scanner) int {
-	for {
-		scanner.Scan()
-		num, err := strconv.Atoi(scanner.Text())
-		if err != nil {
-			fmt.Printf("Невалидно число: %v\n", err)
-			continue
-		}
-		return num
-	}
 }
 
 func SpamNewPurchase(scanner *bufio.Scanner, stateStruct *State) {
@@ -249,8 +222,8 @@ func SpamNewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 		time.Sleep(time.Second)
 		if err := stateStruct.db.CreatePurchase(context.Background(), database.CreatePurchaseParams{
 			Suplier:   "Доставчик",
-			Price:     300,
-			Quantity:  100,
+			Price:     "300",
+			Quantity:  "100",
 			GrainType: "пшеница",
 		}); err != nil {
 			fmt.Printf("Error creating document %d - %v\n", i, err)

@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
-	"math"
 	"os"
 	"text/tabwriter"
 )
@@ -25,14 +23,15 @@ func printEntranceAndExitReciepts(stateStruct *State) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "ТИП\tНОМЕР\tДАТА\tЗЪРНО\tКАМИОН\tРЕМАРКЕ\tБРУТО\tТАРА\tНЕТО\tДОСТАВЧИК\tПОКУПКА №\tКЛИЕНТ\tПРОДАЖБА №")
 	for _, r := range receipts {
-		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%d\t%d\t%d\t%s\t%v\t%s\t%v\n",
+		fmt.Fprintf(w, "%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%v\t%s\t%v\n",
 			r.DocType,
 			r.ID,
 			r.CreatedAt.Format("02/01/2006"),
 			r.GrainType,
 			r.TruckReg,
 			r.TrailerReg,
-			r.Gross, r.Tare,
+			r.Gross,
+			r.Tare,
 			r.Net,
 			r.Suplier.String,
 			nullIntToStr(r.PurchaseID),
@@ -58,7 +57,7 @@ func printInventory(stateStruct *State) {
 	fmt.Println(refLineSeparator)
 	fmt.Println("Текущата наличност по култури е:")
 	for _, item := range inventory {
-		fmt.Printf("%s - %d т.\n", item.GrainType, item.Sum)
+		fmt.Printf("%s: %s т.\n", item.GrainType, item.Net)
 	}
 	fmt.Println(refLineSeparator)
 }
@@ -79,7 +78,7 @@ func printPurchases(stateStruct *State) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tДОСТАВЧИК\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, p := range purchases {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			p.ID,
 			p.CreatedAt.Format("02/01/2006"),
 			p.Suplier,
@@ -87,7 +86,7 @@ func printPurchases(stateStruct *State) {
 			p.Price,
 			p.Quantity,
 			p.Expedited,
-			p.Quantity-p.Expedited)
+			p.Leftover)
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
@@ -109,15 +108,15 @@ func printAllSales(stateStruct *State) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, s := range sales {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
 			s.CreatedAt.Format("02/01/2006"),
 			s.Client,
 			s.GrainType,
 			s.Price,
 			s.Quantity,
-			int32(math.Abs(float64(s.Expedited))),
-			s.Quantity-int32(math.Abs(float64(s.Expedited))))
+			s.Expedited,
+			s.Leftover)
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
@@ -139,15 +138,15 @@ func printSalesByGrainType(stateStruct *State, graintype string) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, s := range sales {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%d\t%d\t%d\n",
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
 			s.CreatedAt.Format("02/01/2006"),
 			s.Client,
 			s.GrainType,
 			s.Price,
 			s.Quantity,
-			int32(math.Abs(float64(s.Expedited))),
-			s.Quantity-int32(math.Abs(float64(s.Expedited))))
+			s.Expedited,
+			s.Leftover)
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
@@ -169,7 +168,7 @@ func printTransports(stateStruct *State) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tКАМИОН\tРЕМАРКЕ\tКОЛИЧЕСТВО\tЗЪРНО\tДОСТАВЧИК\tПОКУПКА №\tКЛИЕНТ\tПРОДАЖБА №")
 	for _, t := range transports {
-		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%d\t%s\t%s\t%d\t%s\t%d\n",
+		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%s\t%d\n",
 			t.ID,
 			t.CreatedAt.Format("02/01/2006"),
 			t.TruckReg,
@@ -183,11 +182,4 @@ func printTransports(stateStruct *State) {
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
-}
-
-func nullIntToStr(n sql.NullInt32) any {
-	if !n.Valid {
-		return ""
-	}
-	return n.Int32
 }

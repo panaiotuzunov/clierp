@@ -12,25 +12,37 @@ VALUES (
 );
 
 -- name: GetAllSales :many
-SELECT s.*, COALESCE(SUM(r.net), 0)::INT AS expedited 
-FROM sales s
-LEFT JOIN receipts r
-ON s.id = r.sale_id
-GROUP BY s.id
-ORDER BY s.id;
+WITH sales_summary AS (
+    SELECT s.*, 
+    COALESCE(ABS(SUM(r.gross - r.tare))::NUMERIC(12, 3), 0)::NUMERIC(12, 3) AS expedited
+    FROM sales s
+    LEFT JOIN receipts r
+    ON s.id = r.sale_id
+    GROUP BY s.id
+)
+SELECT *, 
+       (quantity - expedited)::NUMERIC(12, 3) AS leftover
+FROM sales_summary
+ORDER BY id;
 
 -- name: GetSaleById :one
 SELECT * FROM sales
 WHERE id = $1;
 
 -- name: GetSalesByGrainType :many
-SELECT s.*, COALESCE(SUM(r.net), 0)::INT AS expedited 
-FROM sales s
-LEFT JOIN receipts r
-ON s.id = r.sale_id
-WHERE S.grain_type = $1
-GROUP BY s.id
-ORDER BY s.id;
+WITH sales_summary AS (
+    SELECT s.*, 
+    COALESCE(ABS(SUM(r.gross - r.tare))::NUMERIC(12, 3), 0)::NUMERIC(12, 3) AS expedited
+    FROM sales s
+    LEFT JOIN receipts r
+    ON s.id = r.sale_id
+    WHERE s.grain_type = $1
+    GROUP BY s.id
+)
+SELECT *, 
+       (quantity - expedited)::NUMERIC(12, 3) AS leftover
+FROM sales_summary
+ORDER BY id;
 
 -- name: GetSaleByIdandGrainType :one
 SELECT * FROM sales

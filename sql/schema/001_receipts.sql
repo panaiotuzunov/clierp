@@ -5,9 +5,8 @@ CREATE TABLE receipts (
     updated_at TIMESTAMP NOT NULL,
     truck_reg TEXT NOT NULL,
     trailer_reg TEXT NOT NULL,
-    gross INT NOT NULL,
-    tare INT NOT NULL,
-    net INT NOT NULL,
+    gross NUMERIC(12, 3) NOT NULL,
+    tare NUMERIC(12, 3) NOT NULL,
     doc_type TEXT NOT NULL,
     grain_type TEXT NOT NULL
 );
