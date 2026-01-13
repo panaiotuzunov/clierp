@@ -253,8 +253,9 @@ func SpamNewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 			Quantity:  100,
 			GrainType: "пшеница",
 		}); err != nil {
-			fmt.Printf("Error creating document - %v\n", err)
+			fmt.Printf("Error creating document %d - %v\n", i, err)
+			continue
 		}
-		fmt.Printf("Документ %d е създаден успещно.\n", i+1)
+		fmt.Printf("Документ %d е създаден успешно.\n", i+1)
 	}
 }
