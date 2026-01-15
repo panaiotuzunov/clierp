@@ -89,15 +89,13 @@ func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) 
 	scanner.Scan()
 	receipt.TrailerReg = scanner.Text()
 	fmt.Println("Въведете количество бруто.")
-	gross := scanFloat64(scanner)
+	receipt.Gross = scanDecimal(scanner)
 	fmt.Println("Въведете количество тара.")
-	tare := scanFloat64(scanner)
+	receipt.Tare = scanDecimal(scanner)
 	if receiptType == receiptTypeExit {
-		gross *= -1
-		tare *= -1
+		receipt.Gross = receipt.Gross.Neg()
+		receipt.Tare = receipt.Tare.Neg()
 	}
-	receipt.Gross = float64toStrForDB(gross)
-	receipt.Tare = float64toStrForDB(tare)
 	if err := stateStruct.db.CreateReceipt(context.Background(), receipt); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
@@ -114,9 +112,9 @@ func NewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println("Въведете вид зърно.")
 	purchase.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество.")
-	purchase.Quantity = float64toStrForDB(scanFloat64(scanner))
+	purchase.Quantity = scanDecimal(scanner)
 	fmt.Println("Въведете цена.")
-	purchase.Price = float64toStrForDB(scanFloat64(scanner))
+	purchase.Price = scanDecimal(scanner)
 	if err := stateStruct.db.CreatePurchase(context.Background(), purchase); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
@@ -133,9 +131,9 @@ func NewSale(scanner *bufio.Scanner, stateStruct *State) {
 	fmt.Println("Въведете вид зърно.")
 	sale.GrainType = scanGrainType(scanner)
 	fmt.Println("Въведете количество.")
-	sale.Quantity = float64toStrForDB(scanFloat64(scanner))
+	sale.Quantity = scanDecimal(scanner)
 	fmt.Println("Въведете цена.")
-	sale.Price = float64toStrForDB(scanFloat64(scanner))
+	sale.Price = scanDecimal(scanner)
 	if err := stateStruct.db.CreateSale(context.Background(), sale); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return
@@ -205,7 +203,7 @@ func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
 	scanner.Scan()
 	transport.TrailerReg = scanner.Text()
 	fmt.Println("Въведете количество нето.")
-	transport.Net = float64toStrForDB(scanFloat64(scanner))
+	transport.Net = scanDecimal(scanner)
 	if err := stateStruct.db.CreateTransport(context.Background(), transport); err != nil {
 		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
 		return

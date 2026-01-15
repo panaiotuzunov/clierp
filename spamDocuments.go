@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 func SpamNewPurchase(scanner *bufio.Scanner, stateStruct *State) {
@@ -15,8 +17,8 @@ func SpamNewPurchase(scanner *bufio.Scanner, stateStruct *State) {
 		time.Sleep(time.Second)
 		if err := stateStruct.db.CreatePurchase(context.Background(), database.CreatePurchaseParams{
 			Suplier:   "Доставчик",
-			Price:     "300",
-			Quantity:  "100",
+			Price:     decimal.NewFromInt(300),
+			Quantity:  decimal.NewFromInt(100),
 			GrainType: "пшеница",
 		}); err != nil {
 			fmt.Printf("Error creating document %d - %v\n", i, err)

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+
+	"github.com/shopspring/decimal"
 )
 
 func scanGrainType(scanner *bufio.Scanner) string {
@@ -33,20 +35,16 @@ func scanInt(scanner *bufio.Scanner) int {
 	}
 }
 
-func scanFloat64(scanner *bufio.Scanner) float64 {
+func scanDecimal(scanner *bufio.Scanner) decimal.Decimal {
 	for {
 		scanner.Scan()
-		num, err := strconv.ParseFloat(scanner.Text(), 64)
+		num, err := decimal.NewFromString(scanner.Text())
 		if err != nil {
 			fmt.Printf("Невалидно число: %v\n", err)
 			continue
 		}
 		return num
 	}
-}
-
-func float64toStrForDB(num float64) string {
-	return strconv.FormatFloat(num, 'f', 3, 64)
 }
 
 func nullIntToStr(n sql.NullInt32) any {
