@@ -1,0 +1,213 @@
+package main
+
+import (
+	"bufio"
+	"clierp/internal/database"
+	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+)
+
+const receiptTypeExit = "Пропуск за извозване"
+const receiptTypeEntrace = "Приемна бележка"
+
+var refLineSeparator = strings.Repeat("-", 120)
+var grainTypes = map[string]struct{}{
+	"пшеница":    {},
+	"ечемик":     {},
+	"царевица":   {},
+	"слънчоглед": {},
+	"рапица":     {},
+}
+
+func NewReceipt(scanner *bufio.Scanner, stateStruct *State, receiptType string) {
+	receipt := database.CreateReceiptParams{
+		DocType: receiptType,
+	}
+	if receiptType == receiptTypeEntrace {
+		purchases, err := stateStruct.db.GetAllPurchases(context.Background())
+		if len(purchases) == 0 {
+			fmt.Println("Приемна бележка се създава на база на договор за покупка. В момента няма активни договори. Моля, създайте нов договор.")
+			return
+		}
+		if err != nil {
+			fmt.Printf("Грешка при търсене на договори - %v\n", err)
+			return
+		}
+		fmt.Println("Изберете номер na договoр за покупка. Активни договори към момента са:")
+		printPurchases(stateStruct)
+		for {
+			purchase, err := stateStruct.db.GetPurchaseById(context.Background(), int32(scanInt(scanner)))
+			if err != nil {
+				fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+				continue
+			}
+			receipt.PurchaseID = sql.NullInt32{
+				Valid: true,
+				Int32: purchase.ID,
+			}
+			receipt.SaleID = sql.NullInt32{
+				Valid: false,
+			}
+			receipt.GrainType = purchase.GrainType
+			break
+		}
+	} else { // receiptType == receiptTypeExit
+		sales, err := stateStruct.db.GetAllSales(context.Background())
+		if len(sales) == 0 {
+			fmt.Println("Пропуск за извозване се създава на база на договор за продажба. В момента няма активни договори. Моля, създайте нов договор.")
+			return
+		}
+		if err != nil {
+			fmt.Printf("Грешка при търсене на договори - %v\n", err)
+			return
+		}
+		fmt.Println("Изберете номер na договoр за продажба. Активни договори към момента са:")
+		printAllSales(stateStruct)
+		for {
+			sale, err := stateStruct.db.GetSaleById(context.Background(), int32(scanInt(scanner)))
+			if err != nil {
+				fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+				continue
+			}
+			receipt.SaleID = sql.NullInt32{
+				Valid: true,
+				Int32: sale.ID,
+			}
+			receipt.PurchaseID = sql.NullInt32{
+				Valid: false,
+			}
+			receipt.GrainType = sale.GrainType
+			break
+		}
+	}
+	fmt.Println("Въведете номер на камион.")
+	scanner.Scan()
+	receipt.TruckReg = scanner.Text()
+	fmt.Println("Въведете номер на ремарке.")
+	scanner.Scan()
+	receipt.TrailerReg = scanner.Text()
+	fmt.Println("Въведете количество бруто.")
+	receipt.Gross = scanDecimal(scanner)
+	fmt.Println("Въведете количество тара.")
+	receipt.Tare = scanDecimal(scanner)
+	if receiptType == receiptTypeExit {
+		receipt.Gross = receipt.Gross.Neg()
+		receipt.Tare = receipt.Tare.Neg()
+	}
+	if err := stateStruct.db.CreateReceipt(context.Background(), receipt); err != nil {
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}
+
+func NewPurchase(scanner *bufio.Scanner, stateStruct *State) {
+	var purchase database.CreatePurchaseParams
+	fmt.Println("Въведете доставчик.")
+	scanner.Scan()
+	purchase.Suplier = scanner.Text()
+	fmt.Println("Въведете вид зърно.")
+	purchase.GrainType = scanGrainType(scanner)
+	fmt.Println("Въведете количество.")
+	purchase.Quantity = scanDecimal(scanner)
+	fmt.Println("Въведете цена.")
+	purchase.Price = scanDecimal(scanner)
+	if err := stateStruct.db.CreatePurchase(context.Background(), purchase); err != nil {
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}
+
+func NewSale(scanner *bufio.Scanner, stateStruct *State) {
+	var sale database.CreateSaleParams
+	fmt.Println("Въведете клиент.")
+	scanner.Scan()
+	sale.Client = scanner.Text()
+	fmt.Println("Въведете вид зърно.")
+	sale.GrainType = scanGrainType(scanner)
+	fmt.Println("Въведете количество.")
+	sale.Quantity = scanDecimal(scanner)
+	fmt.Println("Въведете цена.")
+	sale.Price = scanDecimal(scanner)
+	if err := stateStruct.db.CreateSale(context.Background(), sale); err != nil {
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}
+
+func NewTransport(scanner *bufio.Scanner, stateStruct *State) {
+	var transport database.CreateTransportParams
+	// select purchase
+	purchases, err := stateStruct.db.GetAllPurchases(context.Background())
+	if len(purchases) == 0 {
+		fmt.Println("В момента няма активни договори за покупка. Моля, създайте нов договор.")
+		return
+	}
+	if err != nil {
+		fmt.Printf("Грешка при търсене на договори - %v\n", err)
+		return
+	}
+	fmt.Println("Изберете номер на договoр за покупка. Активни договори към момента са:")
+	printPurchases(stateStruct)
+	for {
+		purchase, err := stateStruct.db.GetPurchaseById(context.Background(), int32(scanInt(scanner)))
+		if err != nil {
+			fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+			continue
+		}
+		transport.PurchaseID = sql.NullInt32{
+			Valid: true,
+			Int32: purchase.ID,
+		}
+		transport.GrainType = purchase.GrainType
+		break
+	}
+	// select sale
+	sales, err := stateStruct.db.GetSalesByGrainType(context.Background(), transport.GrainType)
+	if len(sales) == 0 {
+		fmt.Println("В момента няма активни договори за продажба. Моля, създайте нов договор.")
+		return
+	}
+	if err != nil {
+		fmt.Printf("Грешка при търсене на договори - %v\n", err)
+		return
+	}
+	fmt.Println("Изберете номер нa договoр за продажба. Активни договори към момента са:")
+	printSalesByGrainType(stateStruct, transport.GrainType)
+	for {
+		sale, err := stateStruct.db.GetSaleByIdandGrainType(context.Background(), database.GetSaleByIdandGrainTypeParams{
+			ID:        int32(scanInt(scanner)),
+			GrainType: transport.GrainType,
+		})
+		if err != nil {
+			fmt.Printf("Невалиден номер на договор опитайте пак - %v\n", err)
+			continue
+		}
+		transport.SaleID = sql.NullInt32{
+			Valid: true,
+			Int32: sale.ID,
+		}
+		break
+	}
+	fmt.Println("Въведете номер на камион.")
+	scanner.Scan()
+	transport.TruckReg = scanner.Text()
+	fmt.Println("Въведете номер на ремарке.")
+	scanner.Scan()
+	transport.TrailerReg = scanner.Text()
+	fmt.Println("Въведете количество нето.")
+	transport.Net = scanDecimal(scanner)
+	if err := stateStruct.db.CreateTransport(context.Background(), transport); err != nil {
+		fmt.Printf("Неуспешно създаване на документа - %v\n", err)
+		return
+	}
+	fmt.Println("Документът е създаден успешно.")
+	fmt.Println(refLineSeparator)
+}

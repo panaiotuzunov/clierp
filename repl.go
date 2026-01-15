@@ -35,6 +35,9 @@ outer:
 		fmt.Println("Изберете справка от каталога. За връщане назад изберете '0'")
 		fmt.Println("1. Кантарна книга")
 		fmt.Println("2. Наличност")
+		fmt.Println("3. Покупки")
+		fmt.Println("4. Продажби")
+		fmt.Println("5. Директни извозвания")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
@@ -42,6 +45,12 @@ outer:
 			printEntranceAndExitReciepts(stateStruct)
 		case "2":
 			printInventory(stateStruct)
+		case "3":
+			printPurchases(stateStruct)
+		case "4":
+			printAllSales(stateStruct)
+		case "5":
+			printTransports(stateStruct)
 		case "0":
 			break outer
 		case "exit":
@@ -60,13 +69,25 @@ outer:
 		fmt.Println("Изберете тип документ. За връщане назад изберете '0'")
 		fmt.Println("1. Приемна бележка")
 		fmt.Println("2. Пропуск за извозване")
+		fmt.Println("3. Договор за покупка")
+		fmt.Println("4. Договор за продажба")
+		fmt.Println("5. Директно извозване")
+		fmt.Println("6. Спам покупки")
 		scanner.Scan()
 		selection := scanner.Text()
 		switch selection {
 		case "1":
-			NewReceipt(stateStruct, docTypeEntrace)
+			NewReceipt(scanner, stateStruct, receiptTypeEntrace)
 		case "2":
-			NewReceipt(stateStruct, docTypeExit)
+			NewReceipt(scanner, stateStruct, receiptTypeExit)
+		case "3":
+			NewPurchase(scanner, stateStruct)
+		case "4":
+			NewSale(scanner, stateStruct)
+		case "5":
+			NewTransport(scanner, stateStruct)
+		case "6":
+			SpamNewPurchase(scanner, stateStruct)
 		case "0":
 			break outer
 		case "exit":
