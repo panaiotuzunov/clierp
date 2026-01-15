@@ -13,7 +13,7 @@ VALUES (
 
 -- name: GetAllSales :many
 SELECT s.*, 
-    COALESCE(SUM(r.gross - r.tare), 0)::NUMERIC(12, 3) AS expedited_receipts,
+    COALESCE(ABS(SUM(r.gross - r.tare)), 0)::NUMERIC(12, 3) AS expedited_receipts,
     COALESCE(SUM(t.net), 0)::NUMERIC(12, 3) AS expedited_transports
 FROM sales s
 LEFT JOIN receipts r
@@ -29,7 +29,7 @@ WHERE id = $1;
 
 -- name: GetSalesByGrainType :many
 SELECT s.*, 
-    COALESCE(SUM(r.gross - r.tare), 0)::NUMERIC(12, 3) AS expedited_receipts,
+    COALESCE(ABS(SUM(r.gross - r.tare)), 0)::NUMERIC(12, 3) AS expedited_receipts,
     COALESCE(SUM(t.net), 0)::NUMERIC(12, 3) AS expedited_transports
 FROM sales s
 LEFT JOIN receipts r

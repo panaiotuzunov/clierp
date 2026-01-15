@@ -18,7 +18,7 @@ VALUES (
 -- name: GetAllReceipts :many
 SELECT r.*, 
 p.suplier, 
-s.client, (r.gross - r.tare)::numeric(12,3) AS net
+s.client, (r.gross - r.tare)::NUMERIC(12,3) AS net
 FROM receipts r
 LEFT JOIN purchases p
 ON r.purchase_id = p.id
