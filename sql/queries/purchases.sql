@@ -12,18 +12,16 @@ VALUES (
 );
 
 -- name: GetAllPurchases :many
-WITH purchases_summary AS (
-    SELECT p.*, 
-    COALESCE(SUM(r.gross - r.tare)::NUMERIC(12, 3), 0)::NUMERIC(12, 3) AS expedited
-    FROM purchases p
-    LEFT JOIN receipts r
-    ON p.id = r.purchase_id
-    GROUP BY p.id
-)
-SELECT *, 
-       (quantity - expedited)::NUMERIC(12, 3) AS leftover
-FROM purchases_summary
-ORDER BY id;
+SELECT p.*, 
+    COALESCE(SUM(r.gross - r.tare), 0)::NUMERIC(12, 3) AS expedited_receipts,
+    COALESCE(SUM(t.net), 0)::NUMERIC(12, 3) AS expedited_transports
+FROM purchases p
+LEFT JOIN receipts r
+ON p.id = r.purchase_id
+LEFT JOIN transports t
+ON p.id = t.purchase_id
+GROUP BY p.id
+ORDER BY p.id;
 
 -- name: GetPurchaseById :one
 SELECT * FROM purchases

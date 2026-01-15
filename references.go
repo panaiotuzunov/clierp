@@ -78,6 +78,7 @@ func printPurchases(stateStruct *State) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tДОСТАВЧИК\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, p := range purchases {
+		expedited := p.ExpeditedReceipts.Add(p.ExpeditedTransports)
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			p.ID,
 			p.CreatedAt.Format("02/01/2006"),
@@ -85,8 +86,8 @@ func printPurchases(stateStruct *State) {
 			p.GrainType,
 			p.Price,
 			p.Quantity,
-			p.Expedited,
-			p.Leftover)
+			expedited,
+			p.Quantity.Sub(expedited))
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
@@ -108,6 +109,7 @@ func printAllSales(stateStruct *State) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, s := range sales {
+		expedited := s.ExpeditedReceipts.Add(s.ExpeditedTransports)
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
 			s.CreatedAt.Format("02/01/2006"),
@@ -115,8 +117,8 @@ func printAllSales(stateStruct *State) {
 			s.GrainType,
 			s.Price,
 			s.Quantity,
-			s.Expedited,
-			s.Leftover)
+			expedited,
+			s.Quantity.Sub(expedited))
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
@@ -138,6 +140,7 @@ func printSalesByGrainType(stateStruct *State, graintype string) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "НОМЕР\tДАТА\tКЛИЕНТ\tЗЪРНО\tЦЕНА\tКОЛИЧЕСТВО\tЕКСПЕДИРАНО\tОСТАТЪК")
 	for _, s := range sales {
+		expedited := s.ExpeditedReceipts.Add(s.ExpeditedTransports)
 		fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n",
 			s.ID,
 			s.CreatedAt.Format("02/01/2006"),
@@ -145,8 +148,8 @@ func printSalesByGrainType(stateStruct *State, graintype string) {
 			s.GrainType,
 			s.Price,
 			s.Quantity,
-			s.Expedited,
-			s.Leftover)
+			expedited,
+			s.Quantity.Sub(expedited))
 	}
 	w.Flush()
 	fmt.Println(refLineSeparator)
